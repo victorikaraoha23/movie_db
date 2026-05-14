@@ -23,4 +23,6 @@ class MovieCollection:
         
 
     def sort_by_rating(self):
-        sort() 
+        sorted()
+
+        "test"
