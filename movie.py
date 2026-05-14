@@ -16,7 +16,7 @@ class Movie:
         if not value or not value.strip():
             raise ValueError("Title cannot be empty.")
         else:
-            self._title = value.strip().lower()
+            self._title = value.strip()
 
 
     @property
@@ -44,6 +44,9 @@ class Movie:
             self._rating = value_float
     
     def __str__(self):
+        return f"{self.title} ({self.year}) - Directed by {self.director}, Rating: {self.rating}/10"
+
+    def __repr__(self):
         return f"{self.title} ({self.year}) - Directed by {self.director}, Rating: {self.rating}/10"
     
     def to_dict(self):

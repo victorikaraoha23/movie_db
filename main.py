@@ -1,148 +1,115 @@
-# test_movie.py
-# Tests for the Movie class
+# test_collection.py
+# Test file for MovieCollection class
 
 from movie import Movie
-import sys
+from collection import MovieCollection
 
-def print_header(label):
-    print(f"\n{'='*50}\n{label}\n{'='*50}")
+def run_collection_tests():
+    print("=== Testing MovieCollection ===\n")
 
-def test_creation_and_getters():
-    print_header("TEST 1: Creation and Getters")
-    m = Movie("The Matrix", 1999, 8.7, "Lana Wachowski", "Action")
-    print(f"Movie created: {m}")
-    print(f"Title: {m.title}")
-    print(f"Year: {m.year}")
-    print(f"Rating: {m.rating}")
-    print(f"Director: {m.director}")
-    print(f"Genre: {m.genre}")
-    print(f"Poster URL: {m.poster_url}")
+    # --- Setup ---
+    col = MovieCollection()
+    
+    # Create movie objects
+    m1 = Movie("Inception", 2010, 8.8, "Christopher Nolan", "Sci-Fi")
+    m2 = Movie("The Matrix", 1999, 8.7, "Lana Wachowski", "Action")
+    m3 = Movie("Interstellar", 2014, 8.6, "Christopher Nolan", "Sci-Fi")
+    m4 = Movie("Fight Club", 1999, 8.8, "David Fincher", "Drama")
 
-def test_validation():
-    print_header("TEST 2: Validation (should raise errors)")
-    tests = [
-        ("", 2000, 5.0, "Director"),          # Empty title
-        ("   ", 2000, 5.0, "Director"),       # Whitespace title
-        ("Valid", 1800, 5.0, "Director"),     # Year < 1888
-        ("Valid", "not_int", 5.0, "Director"), # Year non-int
-        ("Valid", 2000, 15.0, "Director"),    # Rating > 10
-        ("Valid", 2000, -1.0, "Director"),    # Rating < 0
-        ("Valid", 2000, "not_float", "Director"), # Rating non-float
-    ]
-    for idx, (title, year, rating, director) in enumerate(tests, 1):
-        try:
-            m = Movie(title, year, rating, director)
-            print(f"❌ Test {idx} FAILED: Should have raised error, but got {m}")
-        except Exception as e:
-            print(f"✅ Test {idx} PASSED: Caught {type(e).__name__}: {e}")
+    # --- Test 1: Add and Count ---
+    print("1. Testing add_movie() and count()")
+    col.add_movie(m1)
+    col.add_movie(m2)
+    col.add_movie(m3)
+    col.add_movie(m4)
+    print(f"   Count = {col.count()} (expected 4)")
+    assert col.count() == 4
+    print("   ✅ Passed")
 
-def test_to_dict():
-    print_header("TEST 3: to_dict()")
-    m = Movie("Inception", 2010, 8.8, "Christopher Nolan", "Sci-Fi", "http://example.com/poster.jpg")
-    data = m.to_dict()
-    print(f"to_dict() output: {data}")
-    # Check keys
-    expected_keys = {"title", "year", "rating", "director", "genre", "poster_url"}
-    assert expected_keys == set(data.keys()), "Missing keys in to_dict()"
-    print("✅ to_dict() contains all expected keys")
+    # --- Test 2: List All ---
+    print("\n2. Testing list_all()")
+    all_movies = col.list_all()
+    print(f"   List has {len(all_movies)} movies")
+    for movie in all_movies:
+        print(f"     {movie}")
+    assert len(all_movies) == 4
+    print("   ✅ Passed")
 
-def test_from_dict():
-    print_header("TEST 4: from_dict()")
-    data = {
-        "title": "Interstellar",
-        "year": 2014,
-        "rating": 8.6,
-        "director": "Christopher Nolan",
-        "genre": "Sci-Fi",
-        "poster_url": None
-    }
-    m = Movie.from_dict(data)
-    print(f"from_dict() created: {m}")
-    assert m.title == "Interstellar"
-    assert m.year == 2014
-    assert m.rating == 8.6
-    assert m.director == "Christopher Nolan"
-    assert m.genre == "Sci-Fi"
-    assert m.poster_url is None
-    print("✅ from_dict() works with complete data")
+    # --- Test 3: Find by Title ---
+    print("\n3. Testing find_by_title()")
+    found = col.find_by_title("Inception")
+    print(f"   Found 'Inception': {found}")
+    # Compare by title instead of object identity
+    print(f"Collection count after adding: {col.count()}")
+    print(f"Movies in collection: {[m.title for m in col.list_all()]}")
+    found = col.find_by_title("Inception")
+    print(f"Found object: {found}")
+    assert found.title == "Inception"
+    assert found.title == "Inception"
+    assert found.year == 2010
 
-def test_from_dict_missing_fields():
-    print_header("TEST 5: from_dict() with missing required fields (should crash)")
-    # This tests the current bug in your implementation
-    incomplete_data = {
-        "title": "Gladiator",
-        # missing "year" and "rating"
-    }
-    try:
-        m = Movie.from_dict(incomplete_data)
-        print(f"❌ Should have crashed, but got: {m}")
-    except Exception as e:
-        print(f"✅ Correctly crashed with: {type(e).__name__}: {e}")
+    not_found = col.find_by_title("Avatar")
+    print(f"   Looking for 'Avatar': {not_found}")
+    assert not_found is None
+    print("   ✅ Passed")
 
-def test_from_dict_extra_fields():
-    print_header("TEST 6: from_dict() with extra fields")
-    data = {
-        "title": "Goodfellas",
-        "year": 1990,
-        "rating": 8.7,
-        "director": "Martin Scorsese",
-        "genre": "Crime",
-        "poster_url": None,
-        "extra_field": "should be ignored"
-    }
-    m = Movie.from_dict(data)
-    print(f"Created: {m}")
-    assert m.title == "Goodfellas"
-    assert m.year == 1990
-    assert m.rating == 8.7
-    assert m.director == "Martin Scorsese"
-    assert m.genre == "Crime"
-    print("✅ Extra fields ignored (if no error)")
+    # --- Test 4: Find by Year ---
+    print("\n4. Testing find_by_year()")
+    movies_1999 = col.find_by_year(1999)
+    print(f"   Movies from 1999: {[str(m) for m in movies_1999]}")
+    assert len(movies_1999) == 2
+    # Check titles instead of objects
+    titles_1999 = [m.title for m in movies_1999]
+    assert "The Matrix" in titles_1999
+    assert "Fight Club" in titles_1999
 
-def test_round_trip():
-    print_header("TEST 7: Round trip (Movie → dict → Movie)")
-    original = Movie("The Dark Knight", 2008, 9.0, "Christopher Nolan", "Action")
-    data = original.to_dict()
-    restored = Movie.from_dict(data)
-    print(f"Original: {original}")
-    print(f"Restored: {restored}")
-    assert original.title == restored.title
-    assert original.year == restored.year
-    assert original.rating == restored.rating
-    assert original.director == restored.director
-    assert original.genre == restored.genre
-    assert original.poster_url == restored.poster_url
-    print("✅ Round trip successful")
+    movies_2010 = col.find_by_year(2010)
+    print(f"   Movies from 2010: {[str(m) for m in movies_2010]}")
+    assert len(movies_2010) == 1
+    assert movies_2010[0].title == "Inception"
 
-def test_optional_fields():
-    print_header("TEST 8: Optional fields (genre, poster_url)")
-    m1 = Movie("Fight Club", 1999, 8.8, "David Fincher")  # no genre, no poster
-    print(f"Without optional: {m1}")
-    assert m1.genre is None
-    assert m1.poster_url is None
+    movies_2020 = col.find_by_year(2020)
+    print(f"   Movies from 2020: {movies_2020}")
+    assert isinstance(movies_2020, list)
+    assert len(movies_2020) == 0
+    print("   ✅ Passed")
 
-    m2 = Movie("Pulp Fiction", 1994, 8.9, "Quentin Tarantino", genre="Crime")
-    print(f"With genre only: {m2}")
-    assert m2.genre == "Crime"
-    assert m2.poster_url is None
-    print("✅ Optional fields work")
+    # --- Test 5: Remove ---
+    print("\n5. Testing remove()")
+    removed = col.remove("The Matrix")
+    print(f"   Removed: {removed}")
+    assert removed.title == "The Matrix"
+    assert col.count() == 3
+    assert col.find_by_title("The Matrix") is None
 
-def test_str():
-    print_header("TEST 9: __str__()")
-    m = Movie("The Godfather", 1972, 9.2, "Francis Ford Coppola")
-    s = str(m)
-    print(f"__str__() output: {s}")
-    # Just ensure it prints without crashing
-    print("✅ __str__() executed")
+    not_removed = col.remove("Avatar")
+    print(f"   Attempt to remove 'Avatar': {not_removed}")
+    assert not_removed is None
+    print("   ✅ Passed")
+
+    # --- Test 6: Sort by Rating ---
+    print("\n6. Testing sort_by_rating()")
+    col.sort_by_rating()
+    sorted_list = col.list_all()
+    print("   Sorted by rating (descending):")
+    for movie in sorted_list:
+        print(f"     {movie}")
+    # Check that rating order is correct
+    for i in range(len(sorted_list) - 1):
+        assert sorted_list[i].rating >= sorted_list[i+1].rating
+    print("   ✅ Passed")
+
+    # --- Test 7: Edge Cases ---
+    print("\n7. Testing edge cases")
+    empty_col = MovieCollection()
+    assert empty_col.count() == 0
+    assert empty_col.list_all() == []
+    assert empty_col.find_by_title("Anything") is None
+    assert empty_col.find_by_year(2000) == []
+    assert empty_col.remove("Anything") is None
+    print("   ✅ Passed")
+
+    print("\n=== All tests passed! ===")
 
 if __name__ == "__main__":
-    test_creation_and_getters()
-    test_validation()
-    test_to_dict()
-    test_from_dict()
-    test_from_dict_missing_fields()
-    test_from_dict_extra_fields()
-    test_round_trip()
-    test_optional_fields()
-    test_str()
-    print("\n🎉 All tests completed.")
+    run_collection_tests()

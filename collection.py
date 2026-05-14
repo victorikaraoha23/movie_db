@@ -2,27 +2,38 @@ class MovieCollection:
     def __init__(self):
         self.movies = []
 
-    def add(self,data):
-        self.movies.append(data.to_dict())
+    def add_movie(self,data):
+        self.movies.append(data)
 
 
     def remove(self,title):
-        if title.lower
+        for element in self.movies:
+            if element.title == title:
+                self.movies.remove(element)
+                return element
+        return None
 
-    def find_by_title(self):
-        pass
+    def find_by_title(self,title):
+        for element in self.movies:
+            if element.title == title:
+                return element
+        return None
 
-    def find_by_year(self):
-        pass
-
-    def list_all(self):
-        pass
-
-    def count(self):
-        return f"there are {len(self.movies)} movies in the collection"
+    def find_by_year(self,year):
+        new_list=[]
+        for element in self.movies:
+             if element.year == year:
+                new_list.append(element)
+        return new_list
         
 
-    def sort_by_rating(self):
-        sorted()
+        
 
-        "test"
+    def list_all(self):
+        return self.movies.copy()
+        
+    def count(self):
+        return len(self.movies)
+
+    def sort_by_rating(self):
+        self.movies.sort(key=lambda x: x.rating, reverse=True)
