@@ -27,8 +27,6 @@ class MovieCollection:
         return new_list
         
 
-        
-
     def list_all(self):
         return self.movies.copy()
         
