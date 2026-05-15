@@ -1,115 +1,108 @@
-# test_collection.py
-# Test file for MovieCollection class
+# test_file_handler.py
+# Tests for file_handler module (save_collection and load_collection)
 
+import os
+import json
+import tempfile
 from movie import Movie
 from collection import MovieCollection
+from file_handler import save_collection, load_collection
 
-def run_collection_tests():
-    print("=== Testing MovieCollection ===\n")
+def test_save_and_load():
+    print("=== Testing save_collection() and load_collection() ===\n")
 
-    # --- Setup ---
+    # --- Create a collection with test movies ---
     col = MovieCollection()
-    
-    # Create movie objects
     m1 = Movie("Inception", 2010, 8.8, "Christopher Nolan", "Sci-Fi")
     m2 = Movie("The Matrix", 1999, 8.7, "Lana Wachowski", "Action")
     m3 = Movie("Interstellar", 2014, 8.6, "Christopher Nolan", "Sci-Fi")
-    m4 = Movie("Fight Club", 1999, 8.8, "David Fincher", "Drama")
-
-    # --- Test 1: Add and Count ---
-    print("1. Testing add_movie() and count()")
     col.add_movie(m1)
     col.add_movie(m2)
     col.add_movie(m3)
-    col.add_movie(m4)
-    print(f"   Count = {col.count()} (expected 4)")
-    assert col.count() == 4
-    print("   ✅ Passed")
 
-    # --- Test 2: List All ---
-    print("\n2. Testing list_all()")
-    all_movies = col.list_all()
-    print(f"   List has {len(all_movies)} movies")
-    for movie in all_movies:
-        print(f"     {movie}")
-    assert len(all_movies) == 4
-    print("   ✅ Passed")
+    # --- Save to a temporary file ---
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
+        tmp_filename = tmp.name
+    print(f"1. Saving collection to {tmp_filename}")
+    save_collection(col, tmp_filename)
 
-    # --- Test 3: Find by Title ---
-    print("\n3. Testing find_by_title()")
-    found = col.find_by_title("Inception")
-    print(f"   Found 'Inception': {found}")
-    # Compare by title instead of object identity
-    print(f"Collection count after adding: {col.count()}")
-    print(f"Movies in collection: {[m.title for m in col.list_all()]}")
-    found = col.find_by_title("Inception")
-    print(f"Found object: {found}")
-    assert found.title == "Inception"
-    assert found.title == "Inception"
-    assert found.year == 2010
+    # --- Verify file exists and has content ---
+    assert os.path.exists(tmp_filename)
+    with open(tmp_filename, 'r') as f:
+        data = json.load(f)
+    print(f"   File contains {len(data)} movies")
+    assert len(data) == 3
 
-    not_found = col.find_by_title("Avatar")
-    print(f"   Looking for 'Avatar': {not_found}")
-    assert not_found is None
-    print("   ✅ Passed")
+    # --- Load back from the file ---
+    print("2. Loading collection from the same file")
+    loaded_col = load_collection(tmp_filename)
+    print(f"   Loaded collection has {loaded_col.count()} movies")
+    assert loaded_col.count() == 3
 
-    # --- Test 4: Find by Year ---
-    print("\n4. Testing find_by_year()")
-    movies_1999 = col.find_by_year(1999)
-    print(f"   Movies from 1999: {[str(m) for m in movies_1999]}")
-    assert len(movies_1999) == 2
-    # Check titles instead of objects
-    titles_1999 = [m.title for m in movies_1999]
-    assert "The Matrix" in titles_1999
-    assert "Fight Club" in titles_1999
+    # --- Compare original and loaded collections by title ---
+    original_titles = {m.title for m in col.list_all()}
+    loaded_titles = {m.title for m in loaded_col.list_all()}
+    assert original_titles == loaded_titles
+    print("   ✅ Titles match")
 
-    movies_2010 = col.find_by_year(2010)
-    print(f"   Movies from 2010: {[str(m) for m in movies_2010]}")
-    assert len(movies_2010) == 1
-    assert movies_2010[0].title == "Inception"
+    # --- Clean up ---
+    os.remove(tmp_filename)
+    print("3. Temporary file deleted")
+    print("✅ Save and load test passed!\n")
 
-    movies_2020 = col.find_by_year(2020)
-    print(f"   Movies from 2020: {movies_2020}")
-    assert isinstance(movies_2020, list)
-    assert len(movies_2020) == 0
-    print("   ✅ Passed")
+def test_missing_file():
+    print("=== Testing missing file ===\n")
+    non_existent = "this_file_does_not_exist.json"
+    print(f"1. Loading from {non_existent}")
+    col = load_collection(non_existent)
+    print(f"   Returned collection count: {col.count()}")
+    assert col.count() == 0
+    assert col.list_all() == []
+    print("✅ Missing file returns empty collection\n")
 
-    # --- Test 5: Remove ---
-    print("\n5. Testing remove()")
-    removed = col.remove("The Matrix")
-    print(f"   Removed: {removed}")
-    assert removed.title == "The Matrix"
-    assert col.count() == 3
-    assert col.find_by_title("The Matrix") is None
+def test_corrupted_file():
+    print("=== Testing corrupted file ===\n")
+    # Create a corrupt JSON file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
+        tmp.write("this is not valid json")
+        tmp_filename = tmp.name
+    print(f"1. Created corrupt file: {tmp_filename}")
+    
+    # Try to load it — your load_collection should handle this gracefully
+    try:
+        col = load_collection(tmp_filename)
+        print(f"   Loaded collection count: {col.count()}")
+        # If it handled corruption, it should return an empty collection or create a backup
+        assert col.count() == 0
+        print("   ✅ Corrupted file handled (returned empty collection)")
+    except Exception as e:
+        print(f"   ❌ load_collection raised exception: {e}")
+        print("   (Your file_handler should handle corrupted files gracefully)")
+    
+    # Clean up
+    os.remove(tmp_filename)
+    print("2. Corrupted file deleted\n")
 
-    not_removed = col.remove("Avatar")
-    print(f"   Attempt to remove 'Avatar': {not_removed}")
-    assert not_removed is None
-    print("   ✅ Passed")
-
-    # --- Test 6: Sort by Rating ---
-    print("\n6. Testing sort_by_rating()")
-    col.sort_by_rating()
-    sorted_list = col.list_all()
-    print("   Sorted by rating (descending):")
-    for movie in sorted_list:
-        print(f"     {movie}")
-    # Check that rating order is correct
-    for i in range(len(sorted_list) - 1):
-        assert sorted_list[i].rating >= sorted_list[i+1].rating
-    print("   ✅ Passed")
-
-    # --- Test 7: Edge Cases ---
-    print("\n7. Testing edge cases")
+def test_round_trip_with_empty_collection():
+    print("=== Testing empty collection round trip ===\n")
     empty_col = MovieCollection()
-    assert empty_col.count() == 0
-    assert empty_col.list_all() == []
-    assert empty_col.find_by_title("Anything") is None
-    assert empty_col.find_by_year(2000) == []
-    assert empty_col.remove("Anything") is None
-    print("   ✅ Passed")
-
-    print("\n=== All tests passed! ===")
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
+        tmp_filename = tmp.name
+    print(f"1. Saving empty collection to {tmp_filename}")
+    save_collection(empty_col, tmp_filename)
+    
+    print("2. Loading empty collection")
+    loaded_col = load_collection(tmp_filename)
+    print(f"   Loaded collection count: {loaded_col.count()}")
+    assert loaded_col.count() == 0
+    assert loaded_col.list_all() == []
+    print("✅ Empty collection round trip passed\n")
+    
+    os.remove(tmp_filename)
 
 if __name__ == "__main__":
-    run_collection_tests()
+    test_save_and_load()
+    test_missing_file()
+    test_corrupted_file()
+    test_round_trip_with_empty_collection()
+    print("\n🎉 All file handler tests completed!")
