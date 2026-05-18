@@ -2,34 +2,32 @@ class MovieCollection:
     def __init__(self):
         self.movies = []
 
-    def add_movie(self,data):
+    def add_movie(self, data):
         self.movies.append(data)
 
-
-    def remove(self,title):
+    def remove(self, title):
         for element in self.movies:
             if element.title == title:
                 self.movies.remove(element)
                 return element
         return None
 
-    def find_by_title(self,title):
+    def find_by_title(self, title):
         for element in self.movies:
             if element.title == title:
                 return element
         return None
 
-    def find_by_year(self,year):
-        new_list=[]
+    def find_by_year(self, year):
+        new_list = []
         for element in self.movies:
-             if element.year == year:
+            if element.year == year:
                 new_list.append(element)
         return new_list
-        
 
     def list_all(self):
         return self.movies.copy()
-        
+
     def count(self):
         return len(self.movies)
 

@@ -10,7 +10,7 @@ class Movie:
     @property
     def title(self):
         return self._title
-    
+
     @title.setter
     def title(self, value):
         if not value or not value.strip():
@@ -18,11 +18,10 @@ class Movie:
         else:
             self._title = value.strip()
 
-
     @property
     def year(self):
         return self._year
-    
+
     @year.setter
     def year(self, value):
         year_int = int(value)  # Ensure it's a number
@@ -34,7 +33,7 @@ class Movie:
     @property
     def rating(self):
         return self._rating
-    
+
     @rating.setter
     def rating(self, value):
         value_float = float(value)  # Ensure it's a number
@@ -42,13 +41,19 @@ class Movie:
             raise ValueError("Rating must be a number between 0.0 and 10.0.")
         else:
             self._rating = value_float
-    
+
     def __str__(self):
-        return f"{self.title} ({self.year}) - Directed by {self.director}, Rating: {self.rating}/10"
+        return (
+            f"{self.title} ({self.year}) - Directed by {self.director}, "
+            f"Rating: {self.rating}/10"
+        )
 
     def __repr__(self):
-        return f"{self.title} ({self.year}) - Directed by {self.director}, Rating: {self.rating}/10"
-    
+        return (
+            f"{self.title} ({self.year}) - Directed by {self.director}, "
+            f"Rating: {self.rating}/10"
+        )
+
     def to_dict(self):
         return {
             "title": self.title,
@@ -56,8 +61,9 @@ class Movie:
             "rating": self.rating,
             "director": self.director,
             "genre": self.genre,
-            "poster_url": self.poster_url
+            "poster_url": self.poster_url,
         }
+
     @classmethod
     def from_dict(cls, data):
         return Movie(
@@ -66,8 +72,5 @@ class Movie:
             rating=data["rating"],
             director=data["director"],
             genre=data["genre"],
-            poster_url=data["poster_url"]
+            poster_url=data["poster_url"],
         )
-       
-
-
