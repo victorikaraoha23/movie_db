@@ -43,16 +43,14 @@ class Movie:
             self._rating = value_float
 
     def __str__(self):
-        return (
-            f"{self.title} ({self.year}) - Directed by {self.director}, "
-            f"Rating: {self.rating}/10"
-        )
+        parts = [f"{self.title} ({self.year})"]
+        if self.director:
+            parts.append(f"Directed by {self.director}")
+        parts.append(f"Rating: {self.rating}/10")
+        return " - ".join(parts)
 
     def __repr__(self):
-        return (
-            f"{self.title} ({self.year}) - Directed by {self.director}, "
-            f"Rating: {self.rating}/10"
-        )
+        return self.__str__()
 
     def to_dict(self):
         return {
@@ -68,9 +66,9 @@ class Movie:
     def from_dict(cls, data):
         return Movie(
             title=data["title"],
-            year=data["year"],
-            rating=data["rating"],
-            director=data["director"],
-            genre=data["genre"],
-            poster_url=data["poster_url"],
+            year=data.get("year"),
+            rating=data.get("rating"),
+            director=data.get("director"),
+            genre=data.get("genre"),
+            poster_url=data.get("poster_url"),
         )

@@ -6,17 +6,24 @@ class MovieCollection:
         self.movies.append(data)
 
     def remove(self, title):
-        for element in self.movies:
-            if element.title == title:
-                self.movies.remove(element)
-                return element
+        for index, element in enumerate(self.movies):
+            if element.title.lower() == title.lower():
+                return self.movies.pop(index)
         return None
 
     def find_by_title(self, title):
         for element in self.movies:
-            if element.title == title:
+            if element.title.lower() == title.lower():
                 return element
         return None
+
+    def search(self, query):
+        needle = query.strip().lower()
+        return [
+            element
+            for element in self.movies
+            if needle in element.title.lower() or needle == str(element.year)
+        ]
 
     def find_by_year(self, year):
         new_list = []

@@ -1,11 +1,12 @@
 import json
+import os
 
 from collection import MovieCollection
 from movie import Movie
 
 
 def save_collection(collection, filename):
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         collection_list = []
         for movie in collection.list_all():
             collection_list.append(movie.to_dict())
@@ -14,12 +15,20 @@ def save_collection(collection, filename):
 
 def load_collection(file_name):
     try:
-        with open(file_name) as f:
+        with open(file_name, encoding="utf-8") as f:
             collection_list = json.load(f)
-            collection = MovieCollection()
-            for movie_dict in collection_list:
-                movie_object = Movie.from_dict(movie_dict)
-                collection.add_movie(movie_object)
-            return collection
     except FileNotFoundError:
         return MovieCollection()
+    except json.JSONDecodeError:
+        # Keep the broken file around instead of silently overwriting it.
+        os.replace(file_name, f"{file_name}.corrupt")
+        return MovieCollection()
+
+    collection = MovieCollection()
+    for movie_dict in collection_list:
+        try:
+            collection.add_movie(Movie.from_dict(movie_dict))
+        except (KeyError, TypeError, ValueError):
+            # Skip entries that were hand-edited into something unusable.
+            continue
+    return collection

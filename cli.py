@@ -24,7 +24,7 @@ def get_menu_choice():
 def prompt_title():
     active = True
     while active:
-        display = input("emter movie title: ")
+        display = input("enter movie title: ")
         if not display:
             print("please enter a title")
         else:
@@ -37,7 +37,7 @@ def prompt_year():
     while active:
         try:
             display = int(input("enter release year: "))
-            if not display or display < 1888:
+            if display < 1888:
                 print("please enter a valid release year")
             else:
                 active = False
@@ -116,7 +116,7 @@ def display_movie_details(movie):
         if values is None:
             pass
         else:
-            print(f"{key}: {values}")
+            print(f"{key.replace('_', ' ').title()}: {values}")
 
 
 def display_message(message):

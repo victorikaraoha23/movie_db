@@ -11,3 +11,8 @@ wheels/
 
 #enviroment variables
 .env
+
+# saved data and exports
+movies.json
+movies_export.*
+*.json.corrupt
